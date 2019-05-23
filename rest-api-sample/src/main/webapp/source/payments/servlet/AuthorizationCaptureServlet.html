@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><title>payments/servlet/AuthorizationCaptureServlet</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="payments/servlet/AuthorizationCaptureServlet"><meta name="groc-project-path" content="payments/servlet/AuthorizationCaptureServlet.java"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">payments/servlet/AuthorizationCaptureServlet.java</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="authorizationcapture-sample">AuthorizationCapture Sample</h1>
+<p>This sample code demonstrate how you 
+do a Capture on an Authorization
+API used: /v1/payments/authorization/{authorization_id}/capture</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">package</span> com.paypal.api.payments.servlet;
+
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> com.paypal.api.payments.util.SampleConstants.clientID;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> com.paypal.api.payments.util.SampleConstants.clientSecret;
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> com.paypal.api.payments.util.SampleConstants.mode;
+
+<span class="hljs-keyword">import</span> java.io.IOException;
+<span class="hljs-keyword">import</span> java.util.ArrayList;
+<span class="hljs-keyword">import</span> java.util.List;
+
+<span class="hljs-keyword">import</span> javax.servlet.ServletException;
+<span class="hljs-keyword">import</span> javax.servlet.http.HttpServlet;
+<span class="hljs-keyword">import</span> javax.servlet.http.HttpServletRequest;
+<span class="hljs-keyword">import</span> javax.servlet.http.HttpServletResponse;
+
+<span class="hljs-keyword">import</span> org.apache.log4j.Logger;
+
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Address;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Amount;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Authorization;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Capture;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.CreditCard;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Details;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.FundingInstrument;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Payer;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Payment;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Transaction;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.util.ResultPrinter;
+<span class="hljs-keyword">import</span> com.paypal.base.rest.APIContext;
+<span class="hljs-keyword">import</span> com.paypal.base.rest.PayPalRESTException;
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AuthorizationCaptureServlet</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">HttpServlet</span> </span>{
+
+	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = <span class="hljs-number">1L</span>;
+
+	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Logger LOGGER = Logger
+			.getLogger(AuthorizationCaptureServlet.class);
+
+	<span class="hljs-annotation">@Override</span>
+	<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doGet</span><span class="hljs-params">(HttpServletRequest req, HttpServletResponse resp)</span>
+			<span class="hljs-keyword">throws</span> ServletException, IOException </span>{
+		doPost(req, resp);
+	}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="authorizationcapture">AuthorizationCapture</h2>
+<p>Sample showing how to do a Capture using Authorization</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-annotation">@Override</span>
+	<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doPost</span><span class="hljs-params">(HttpServletRequest req, HttpServletResponse resp)</span>
+			<span class="hljs-keyword">throws</span> ServletException, IOException </span>{
+		<span class="hljs-keyword">try</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h3 id="api-context">Api Context</h3>
+<p>Pass in a <code>ApiContext</code> object to authenticate
+the call and to send a unique request id
+(that ensures idempotency). The SDK generates
+a request id if you do not pass one explicitly.</p></div></div><div class="code"><div class="wrapper">			APIContext apiContext = <span class="hljs-keyword">new</span> APIContext(clientID, clientSecret, mode);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h3 id="authorization">Authorization</h3>
+<p>Retrieve a Authorization object
+by making a Payment with intent
+as &#39;authorize&#39;</p></div></div><div class="code"><div class="wrapper">			String authorizationId = <span class="hljs-string">"&lt;your authorization id here&gt;"</span>;
+			Authorization authorization = Authorization.get(apiContext, authorizationId);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h3 id="amount">Amount</h3>
+<p>Let&#39;s you specify a capture amount.</p></div></div><div class="code"><div class="wrapper">			Amount amount = <span class="hljs-keyword">new</span> Amount();
+			amount.setCurrency(<span class="hljs-string">"USD"</span>);
+			amount.setTotal(<span class="hljs-string">"4.54"</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h3 id="capture">Capture</h3>
+<p>A capture transaction</p></div></div><div class="code"><div class="wrapper">			Capture capture = <span class="hljs-keyword">new</span> Capture();
+			capture.setAmount(amount);
+			</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="isfinalcapture">IsFinalCapture</h2>
+<p>If set to true, all remaining 
+funds held by the authorization 
+will be released in the funding 
+instrument. Default is �false�.</p></div></div><div class="code"><div class="wrapper">			capture.setIsFinalCapture(<span class="hljs-keyword">true</span>);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Capture by POSTing to
+URI v1/payments/authorization/{authorization_id}/capture</p></div></div><div class="code"><div class="wrapper">			Capture responseCapture = authorization.capture(apiContext, capture);
+
+			LOGGER.info(<span class="hljs-string">"Capture id = "</span> + responseCapture.getId()
+					+ <span class="hljs-string">" and status = "</span> + responseCapture.getState());
+			ResultPrinter.addResult(req, resp, <span class="hljs-string">"Authorization Capture"</span>, Authorization.getLastRequest(), Authorization.getLastResponse(), <span class="hljs-keyword">null</span>);
+		} <span class="hljs-keyword">catch</span> (PayPalRESTException e) {
+			ResultPrinter.addResult(req, resp, <span class="hljs-string">"Authorization Capture"</span>, Authorization.getLastRequest(), <span class="hljs-keyword">null</span>, e.getMessage());
+		}
+		req.getRequestDispatcher(<span class="hljs-string">"response.jsp"</span>).forward(req, resp);
+	}
+
+}</div></div></div></div></body></html>

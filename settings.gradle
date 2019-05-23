@@ -1,0 +1,3 @@
+rootProject.name = 'rest-api'
+
+include ':rest-api-sdk', ':rest-api-sample'

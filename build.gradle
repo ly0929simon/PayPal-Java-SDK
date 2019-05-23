@@ -1,0 +1,188 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+        classpath 'org.akhikhl.gretty:gretty:1.4.2'
+    }
+}
+apply plugin: 'io.codearte.nexus-staging'
+
+allprojects {
+    apply plugin: 'maven'
+    apply plugin: 'java'
+
+    group = 'com.paypal.sdk'
+    version = '1.14.0'
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+
+    repositories {
+        mavenCentral()
+    }
+    // Currently disables doclint
+    tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+
+}
+
+// GLOBAL METHODS
+def getRepositoryUsername() {
+    return hasProperty('sonatypeUsername') ? sonatypeUsername : ""
+}
+
+def getRepositoryPassword() {
+    return hasProperty('sonatypePassword') ? sonatypePassword : ""
+}
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+// ## REST API SDK
+project(':rest-api-sdk') {
+    apply plugin: 'signing'
+
+    apply from: 'lombok.gradle'
+
+    nexusStaging {
+        packageGroup = "com.paypal"
+        username = getRepositoryUsername()
+        password = getRepositoryPassword()
+    }
+
+    dependencies {
+        // General
+        compile 'com.google.code.gson:gson:2.2.2'
+
+        // Logging
+        testRuntime 'org.apache.logging.log4j:log4j-api:2.1'
+        testRuntime 'org.apache.logging.log4j:log4j-core:2.1'
+        testRuntime 'org.apache.logging.log4j:log4j-slf4j-impl:2.1'
+        compile 'org.slf4j:slf4j-api:1.7.21'
+
+        // Test
+        testCompile 'org.testng:testng:6.3.1'
+        testCompile "org.mockito:mockito-all:1.10.19"
+        testCompile 'org.powermock:powermock-api-mockito:1.7.3'
+        testCompile 'org.powermock:powermock-module-testng:1.7.3'
+    }
+
+    test {
+        // enable TestNG support (default is JUnit)
+        useTestNG {
+            suites 'src/test/resources/testng.xml'
+            // show standard out and standard error of the test JVM(s) on the console
+            testLogging.showStandardStreams = true
+            // This is to force the test task to execute everytime.
+            outputs.upToDateWhen { false }
+        } 
+    }
+
+    // Run functional tests 
+    task functionalTest(type: Test, dependsOn: 'test') {
+        useTestNG() {
+            suites 'src/test/resources/functional.xml'
+        }
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        // Using delomboked as a source
+        from sourceSets.main.ext.delombok
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    uploadArchives {
+        repositories.mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: getRepositoryUsername(), password: getRepositoryPassword())
+            }
+
+            pom.project {
+                name 'rest-api-sdk'
+                groupId  'com.paypal.sdk'
+                artifactId 'rest-api-sdk'
+                packaging 'jar'
+                description 'PayPal SDK for integrating with the REST APIs'
+                url 'https://github.com/paypal/PayPal-Java-SDK.git'
+
+                scm {
+                    url 'https://github.com/paypal/PayPal-Java-SDK.git'
+                    connection 'scm:git:git://github.com/paypal/PayPal-Java-SDK.git'
+                }
+
+                licenses {
+                    license {
+                        name 'PayPal SDK License'
+                        url 'https://github.com/paypal/PayPal-Java-SDK/blob/master/LICENSE.txt'
+                        distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'DL-PP-JAVA-SDK'
+                        name 'DL-PP-JAVA-SDK'
+                        email 'DL-PP-JAVA-SDK@paypal.com'
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        required { isReleaseVersion && gradle.taskGraph.hasTask(tasks.uploadArchives) }
+        sign configurations.archives
+    }
+}
+
+// ## REST API SAMPLE PROJECT
+project(':rest-api-sample') {
+    apply plugin: 'org.akhikhl.gretty'
+
+    // property name to override default Jetty port
+    final JETTY_RUN_HTTP_PORT = 'jettyRunHttpPort'
+
+    dependencies {
+        compile project(':rest-api-sdk')
+        compile 'javax.servlet:javax.servlet-api:3.1.0'
+        compile 'log4j:log4j:1.2.14'
+        compile 'org.apache.logging.log4j:log4j-api:2.1'
+        compile 'org.apache.logging.log4j:log4j-core:2.1'
+        compile 'org.apache.logging.log4j:log4j-slf4j-impl:2.1'
+    }
+
+    gretty.httpPort = Integer.valueOf(findPropertyOrDefault(JETTY_RUN_HTTP_PORT, project, 8080))
+}
+
+/**
+ * Try to find first significant value by {@code propertyName} in the next order:
+ * <ol>
+ *   <li>If {@code propertyName} is supplied as a gradle runtime argument (<b>-D</b> option)</li>
+ *   <li>If {@code propertyName} is set as a {@code project} property, for example in
+ *       {@code gradle.properties} file of the project or in the gradle home directory</li>
+ *   <li>otherwise fallback to {@code defaultValue}</li>
+ * </ol>
+ *
+ * @param propertyName name of the sought property
+ * @param project Gradle project in which try to find the value
+ * @param defaultValue value to use if neither runtime argument nor project property found
+ *
+ * @return String value from system, project property, or {@code defaultValue}
+ */
+static String findPropertyOrDefault(String propertyName, Project project, Object defaultValue) {
+    return System.getProperty(propertyName) ?:
+        project.findProperty(propertyName) ?:
+            defaultValue as String
+}

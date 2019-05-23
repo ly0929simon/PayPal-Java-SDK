@@ -1,0 +1,50 @@
+{
+  "template_id": "TEMP-32741586FS709684U",
+  "name": "Sample-7dc30454-bed3-44a2-ae61-20b13d7a4323",
+  "default": true,
+  "template_data": {
+    "merchant_info": {
+      "email": "jaypatel512-facilitator@hotmail.com"
+    },
+    "items": [{
+      "name": "Nutri Bullet",
+      "quantity": 1,
+      "unit_price": {
+        "currency": "USD",
+        "value": "50.00"
+      }
+    }],
+    "tax_calculated_after_discount": false,
+    "tax_inclusive": false,
+    "note": "Thank you for your business.",
+    "logo_url": "https://pics.paypal.com/v1/images/redDot.jpeg",
+    "allow_partial_payment": false,
+    "currencyCode": "USD"
+  },
+  "settings": [{
+    "field_name": "items.date",
+    "display_preference": {
+      "hidden": true
+    }
+  }, {
+    "field_name": "custom",
+    "display_preference": {
+      "hidden": true
+    }
+  }],
+  "unit_of_measure": "HOURS",
+  "custom": true,
+  "links": [{
+    "rel": "self",
+    "href": "https://api.sandbox.paypal.com/v1/invoicing/templates/TEMP-32741586FS709684U",
+    "method": "GET"
+  }, {
+    "rel": "delete",
+    "href": "https://api.sandbox.paypal.com/v1/invoicing/templates/TEMP-32741586FS709684U",
+    "method": "DELETE"
+  }, {
+    "rel": "update",
+    "href": "https://api.sandbox.paypal.com/v1/invoicing/templates/TEMP-32741586FS709684U",
+    "method": "PUT"
+  }]
+}

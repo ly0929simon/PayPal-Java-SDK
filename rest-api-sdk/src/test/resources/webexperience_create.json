@@ -1,0 +1,17 @@
+{
+    "name": "YeowZa! T-Shirt Shop",
+    "presentation": {
+        "brand_name": "YeowZa! Paypal",
+        "logo_image": "http://www.yeowza.com",
+        "locale_code": "US"
+    },
+    "input_fields": {
+        "allow_note": true,
+        "no_shipping": 0,
+        "address_override": 1
+    },
+    "flow_config": {
+        "landing_page_type": "billing",
+        "bank_txn_pending_url": "http://www.yeowza.com"
+    }
+}

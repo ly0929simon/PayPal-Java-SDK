@@ -1,0 +1,80 @@
+{
+    "merchant_info": {
+        "email": "jaypatel512-facilitator@hotmail.com",
+        "first_name": "Dennis",
+        "last_name": "Doctor",
+        "business_name": "Medical Professionals, LLC",
+        "phone": {
+            "country_code": "001",
+            "national_number": "5032141716"
+        },
+        "address": {
+            "line1": "1234 Main St.",
+            "city": "Portland",
+            "state": "OR",
+            "postal_code": "97217",
+            "country_code": "US"
+        }
+    },
+    "billing_info": [
+        {
+            "email": "example@example.com",
+            "business_name": "Jay Inc",
+            "additional_info": "This is the billing Info",
+            "address": {
+                "line1": "1234 Main St.",
+                "city": "Portland",
+                "state": "OR",
+                "postal_code": "97217",
+                "country_code": "US"
+            }
+        }
+    ],
+    "note": "Medical Invoice 16 Jul, 2013 PST",
+    "payment_term": {
+        "term_type": "NET_45"
+    },
+    "shipping_info": {
+        "first_name": "Sally",
+        "last_name": "Patient",
+        "business_name": "Not applicable",
+        "phone": {
+            "country_code": "001",
+            "national_number": "5039871234"
+        },
+        "address": {
+            "line1": "1234 Main St.",
+            "city": "Portland",
+            "state": "OR",
+            "postal_code": "97217",
+            "country_code": "US"
+        }
+    },
+    "items": [
+        {
+            "name": "Sutures",
+            "quantity": "100",
+            "unit_price": {
+                "currency": "USD",
+                "value": "5"
+            },
+            "tax": {
+                "percent": "1",
+                "name": "Local Tax on Sutures"
+            }
+        },
+        {
+            "name": "Injection",
+            "quantity": "5",
+            "unit_price": {
+                "currency": "USD",
+                "value": "5"
+            },
+            "tax": {
+                "percent": "3",
+                "name": "Local Tax on Injection"
+            }
+        }
+    ],
+    "logo_url": "https://www.paypalobjects.com/webstatic/i/logo/rebrand/ppcom.svg"
+}

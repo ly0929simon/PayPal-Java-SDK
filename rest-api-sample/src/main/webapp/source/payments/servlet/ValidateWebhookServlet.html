@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="en"><head><title>payments/servlet/ValidateWebhookServlet</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../../"><meta name="groc-document-path" content="payments/servlet/ValidateWebhookServlet"><meta name="groc-project-path" content="payments/servlet/ValidateWebhookServlet.java"><link rel="stylesheet" type="text/css" media="all" href="../../assets/style.css"><script type="text/javascript" src="../../assets/behavior.js"></script><body><div id="meta"><div class="file-path">payments/servlet/ValidateWebhookServlet.java</div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="validate-webhook-sample">Validate Webhook Sample</h1>
+<p>This is a sample code to demonstrate how to validate a webhook received on your web server.
+This sample assumes you are using java servlet, which returns HttpServletRequest object.
+However, this code can still be easily modified to your specific case.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">package</span> com.paypal.api.payments.servlet;
+
+<span class="hljs-keyword">import</span> com.paypal.api.payments.CreditCard;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.Event;
+<span class="hljs-keyword">import</span> com.paypal.api.payments.util.ResultPrinter;
+<span class="hljs-keyword">import</span> com.paypal.base.Constants;
+<span class="hljs-keyword">import</span> com.paypal.base.rest.APIContext;
+<span class="hljs-keyword">import</span> com.paypal.base.rest.PayPalRESTException;
+<span class="hljs-keyword">import</span> org.apache.log4j.Logger;
+
+<span class="hljs-keyword">import</span> javax.servlet.ServletException;
+<span class="hljs-keyword">import</span> javax.servlet.http.HttpServlet;
+<span class="hljs-keyword">import</span> javax.servlet.http.HttpServletRequest;
+<span class="hljs-keyword">import</span> javax.servlet.http.HttpServletResponse;
+<span class="hljs-keyword">import</span> java.io.BufferedReader;
+<span class="hljs-keyword">import</span> java.io.IOException;
+<span class="hljs-keyword">import</span> java.io.InputStream;
+<span class="hljs-keyword">import</span> java.io.InputStreamReader;
+<span class="hljs-keyword">import</span> java.security.InvalidKeyException;
+<span class="hljs-keyword">import</span> java.security.NoSuchAlgorithmException;
+<span class="hljs-keyword">import</span> java.security.SignatureException;
+<span class="hljs-keyword">import</span> java.util.Enumeration;
+<span class="hljs-keyword">import</span> java.util.HashMap;
+<span class="hljs-keyword">import</span> java.util.Map;
+
+<span class="hljs-keyword">import</span> <span class="hljs-keyword">static</span> com.paypal.api.payments.util.SampleConstants.*;
+
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ValidateWebhookServlet</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">HttpServlet</span> </span>{
+
+	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = <span class="hljs-number">1L</span>;
+
+	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Logger LOGGER = Logger
+			.getLogger(ValidateWebhookServlet.class);
+
+	<span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String WebhookId = <span class="hljs-string">"4JH86294D6297924G"</span>;
+
+	<span class="hljs-annotation">@Override</span>
+	<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doGet</span><span class="hljs-params">(HttpServletRequest req, HttpServletResponse resp)</span>
+			<span class="hljs-keyword">throws</span> ServletException, IOException </span>{
+		doPost(req, resp);
+	}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="validate-webhook">Validate Webhook</h2></div></div></div><div class="segment"><div class="code"><div class="wrapper">	<span class="hljs-annotation">@Override</span>
+	<span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doPost</span><span class="hljs-params">(HttpServletRequest req, HttpServletResponse resp)</span>
+			<span class="hljs-keyword">throws</span> ServletException, IOException </span>{
+		<span class="hljs-keyword">try</span>{</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h3 id="api-context">Api Context</h3></div></div></div><div class="segment"><div class="code"><div class="wrapper">			APIContext apiContext = <span class="hljs-keyword">new</span> APIContext(clientID, clientSecret, mode);</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Set the webhookId that you received when you created this webhook.</p></div></div><div class="code"><div class="wrapper">			apiContext.addConfiguration(Constants.PAYPAL_WEBHOOK_ID, WebhookId);
+
+			Boolean result = Event.validateReceivedEvent(apiContext, getHeadersInfo(req), getBody(req));
+			
+			System.out.println(<span class="hljs-string">"Result is "</span> + result);
+			LOGGER.info(<span class="hljs-string">"Webhook Validated:  "</span>
+					+ result);
+			ResultPrinter.addResult(req, resp, <span class="hljs-string">"Webhook Validated:  "</span>, CreditCard.getLastRequest(), CreditCard.getLastResponse(), <span class="hljs-keyword">null</span>);
+		} <span class="hljs-keyword">catch</span> (PayPalRESTException e) {
+			LOGGER.error(e.getMessage());
+			ResultPrinter.addResult(req, resp, <span class="hljs-string">"Webhook Validated:  "</span>, CreditCard.getLastRequest(), <span class="hljs-keyword">null</span>, e.getMessage());
+		} <span class="hljs-keyword">catch</span> (InvalidKeyException e) {
+			LOGGER.error(e.getMessage());
+			ResultPrinter.addResult(req, resp, <span class="hljs-string">"Webhook Validated:  "</span>, CreditCard.getLastRequest(), <span class="hljs-keyword">null</span>, e.getMessage());
+		} <span class="hljs-keyword">catch</span> (NoSuchAlgorithmException e) {
+			LOGGER.error(e.getMessage());
+			ResultPrinter.addResult(req, resp, <span class="hljs-string">"Webhook Validated:  "</span>, CreditCard.getLastRequest(), <span class="hljs-keyword">null</span>, e.getMessage());
+		} <span class="hljs-keyword">catch</span> (SignatureException e) {
+			LOGGER.error(e.getMessage());
+			ResultPrinter.addResult(req, resp, <span class="hljs-string">"Webhook Validated:  "</span>, CreditCard.getLastRequest(), <span class="hljs-keyword">null</span>, e.getMessage());
+		}
+	}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Simple helper method to help you extract the headers from HttpServletRequest object.</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Map&lt;String, String&gt; getHeadersInfo(HttpServletRequest request) {
+
+		Map&lt;String, String&gt; map = <span class="hljs-keyword">new</span> HashMap&lt;String, String&gt;();
+
+		<span class="hljs-annotation">@SuppressWarnings</span>(<span class="hljs-string">"rawtypes"</span>)
+		Enumeration headerNames = request.getHeaderNames();
+		<span class="hljs-keyword">while</span> (headerNames.hasMoreElements()) {
+			String key = (String) headerNames.nextElement();
+			String value = request.getHeader(key);
+			map.put(key, value);
+		}
+
+		<span class="hljs-keyword">return</span> map;
+	}</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Simple helper method to fetch request data as a string from HttpServletRequest object.</p></div></div><div class="code"><div class="wrapper">	<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> String <span class="hljs-title">getBody</span><span class="hljs-params">(HttpServletRequest request)</span> <span class="hljs-keyword">throws</span> IOException </span>{
+
+	    String body;
+	    StringBuilder stringBuilder = <span class="hljs-keyword">new</span> StringBuilder();
+	    BufferedReader bufferedReader = <span class="hljs-keyword">null</span>;
+
+	    <span class="hljs-keyword">try</span> {
+	        InputStream inputStream = request.getInputStream();
+	        <span class="hljs-keyword">if</span> (inputStream != <span class="hljs-keyword">null</span>) {
+	            bufferedReader = <span class="hljs-keyword">new</span> BufferedReader(<span class="hljs-keyword">new</span> InputStreamReader(inputStream));
+	            <span class="hljs-keyword">char</span>[] charBuffer = <span class="hljs-keyword">new</span> <span class="hljs-keyword">char</span>[<span class="hljs-number">128</span>];
+	            <span class="hljs-keyword">int</span> bytesRead = -<span class="hljs-number">1</span>;
+	            <span class="hljs-keyword">while</span> ((bytesRead = bufferedReader.read(charBuffer)) &gt; <span class="hljs-number">0</span>) {
+	                stringBuilder.append(charBuffer, <span class="hljs-number">0</span>, bytesRead);
+	            }
+	        } <span class="hljs-keyword">else</span> {
+	            stringBuilder.append(<span class="hljs-string">""</span>);
+	        }
+	    } <span class="hljs-keyword">catch</span> (IOException ex) {
+	        <span class="hljs-keyword">throw</span> ex;
+	    } <span class="hljs-keyword">finally</span> {
+	        <span class="hljs-keyword">if</span> (bufferedReader != <span class="hljs-keyword">null</span>) {
+	            <span class="hljs-keyword">try</span> {
+	                bufferedReader.close();
+	            } <span class="hljs-keyword">catch</span> (IOException ex) {
+	                <span class="hljs-keyword">throw</span> ex;
+	            }
+	        }
+	    }
+
+	    body = stringBuilder.toString();
+	    <span class="hljs-keyword">return</span> body;
+	}
+
+}</div></div></div></div></body></html>
